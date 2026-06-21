@@ -1,38 +1,22 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
-const SCORE_COLORS = {
-  Excellent: "#10B981",
-  Good: "#10B981",
-  Optimal: "#10B981",
-  Thriving: "#10B981",
-  Adequate: "#10B981",
-  "Needs Attention": "#F59E0B",
-  "Moderate Risk": "#F59E0B",
-  "Moderate Stress": "#F59E0B",
-  "Some Gaps": "#F59E0B",
-  Disrupted: "#F59E0B",
-  "At Risk": "#EF4444",
-  "High Risk": "#EF4444",
-  "Needs Support": "#EF4444",
-  "Significant Gaps": "#EF4444",
-  "Significantly Impaired": "#EF4444",
-  "Rehabilitation Recommended": "#EF4444",
+const CONCERN_CONFIG = {
+  None: { label: "No Concern", color: "#10B981", bg: "#ECFDF5", border: "#6EE7B7" },
+  Mild: { label: "Mild Concern", color: "#F59E0B", bg: "#FFFBEB", border: "#FCD34D" },
+  Moderate: { label: "Moderate Concern", color: "#F97316", bg: "#FFF7ED", border: "#FDBA74" },
+  Severe: { label: "Severe Concern", color: "#EF4444", bg: "#FFF5F5", border: "#FCA5A5" },
 };
 
-function extractScore(report) {
-  for (const score of Object.keys(SCORE_COLORS)) {
-    if (report.includes(score)) return score;
-  }
-  return null;
-}
-
 function inlineMd(text) {
-  return text
+  // Convert markdown links to real anchor tags
+  let result = text
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="report-link">$1</a>')
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+  return result;
 }
 
-function formatReport(text) {
+function formatDetailed(text) {
   const lines = text.split("\n");
   const elements = [];
   let key = 0;
@@ -44,6 +28,12 @@ function formatReport(text) {
       elements.push(<h3 key={key++} className="report-h2">{line.replace(/^## /, "")}</h3>);
     } else if (line.startsWith("### ") || line.match(/^\*\*[^*]+\*\*:?$/)) {
       elements.push(<h4 key={key++} className="report-h3">{line.replace(/^###? /, "").replace(/\*\*/g, "")}</h4>);
+    } else if (line.match(/^\d+\.\s/)) {
+      elements.push(
+        <div key={key++} className="report-numbered">
+          <span dangerouslySetInnerHTML={{ __html: inlineMd(line) }} />
+        </div>
+      );
     } else if (line.startsWith("- ") || line.startsWith("• ")) {
       const content = line.replace(/^[-•] /, "");
       elements.push(
@@ -52,8 +42,6 @@ function formatReport(text) {
           <span dangerouslySetInnerHTML={{ __html: inlineMd(content) }} />
         </div>
       );
-    } else if (line.includes("DISCLAIMER")) {
-      elements.push(<div key={key++} className="report-disclaimer">{line.replace(/\*\*/g, "")}</div>);
     } else {
       elements.push(
         <p key={key++} className="report-p">
@@ -67,13 +55,22 @@ function formatReport(text) {
 
 export default function Report({ data, area, onStartOver }) {
   const topRef = useRef(null);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     topRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  const score = extractScore(data.report);
-  const scoreColor = score ? SCORE_COLORS[score] : area.color;
+  const concern = CONCERN_CONFIG[data.concernLevel] || CONCERN_CONFIG["Mild"];
+
+  // Build profile summary line only with what was provided
+  const profileParts = [
+    data.profile?.age ? `Age ${data.profile.age}` : null,
+    data.profile?.sex || null,
+    data.profile?.height || null,
+    data.profile?.weight || null,
+    data.profile?.bmi ? `BMI ${data.profile.bmi}` : null,
+  ].filter(Boolean);
 
   return (
     <div className="report-page" ref={topRef}>
@@ -90,26 +87,52 @@ export default function Report({ data, area, onStartOver }) {
           <span className="report-area-badge" style={{ background: area.gradient, color: area.color }}>
             {area.icon} {data.areaLabel || area.label} Report
           </span>
-          <div className="report-profile-summary">
-            Age {data.profile.age} · {data.profile.sex} · {data.profile.height} · {data.profile.weight} · BMI {data.profile.bmi}
-          </div>
+          {profileParts.length > 0 && (
+            <div className="report-profile-summary">{profileParts.join(" · ")}</div>
+          )}
         </div>
 
-        {score && (
-          <div className="score-badge" style={{ background: scoreColor + "18", borderColor: scoreColor + "40" }}>
-            <div className="score-dot" style={{ background: scoreColor }} />
-            <div>
-              <div className="score-label">Health Status</div>
-              <div className="score-value" style={{ color: scoreColor }}>{score}</div>
-            </div>
+        {/* Concern Badge */}
+        <div
+          className="concern-badge"
+          style={{ background: concern.bg, borderColor: concern.border }}
+        >
+          <div className="concern-dot" style={{ background: concern.color }} />
+          <div>
+            <div className="concern-label-text">Concern Level</div>
+            <div className="concern-value" style={{ color: concern.color }}>{concern.label}</div>
           </div>
-        )}
+        </div>
       </div>
 
       <div className="report-body">
-        <div className="report-content">
-          {formatReport(data.report)}
+
+        {/* Summary Card */}
+        <div className="summary-card" style={{ borderLeftColor: area.color }}>
+          <div className="summary-header">
+            <span className="summary-icon">📋</span>
+            <span className="summary-title">Your Summary</span>
+            <span className="summary-note">Plain-language overview</span>
+          </div>
+          <p className="summary-text">{data.summary}</p>
+
+          {/* Read More Toggle */}
+          <button
+            className="read-more-btn"
+            onClick={() => setExpanded((v) => !v)}
+            style={{ color: area.color, borderColor: area.color + "40" }}
+          >
+            {expanded ? "▲ Show less" : "▼ Read the full report"}
+          </button>
         </div>
+
+        {/* Detailed Report — expandable */}
+        {expanded && (
+          <div className="report-content">
+            {formatDetailed(data.report)}
+          </div>
+        )}
+
       </div>
 
       <div className="report-actions">
@@ -117,8 +140,12 @@ export default function Report({ data, area, onStartOver }) {
           <span className="disclaimer-icon">i</span>
           <span>This report is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider.</span>
         </div>
-        <button className="start-over-btn" onClick={onStartOver} style={{ borderColor: area.color, color: area.color }}>
-          ← Analyze another area
+        <button
+          className="start-over-btn"
+          onClick={onStartOver}
+          style={{ borderColor: area.color, color: area.color }}
+        >
+          ← Check another area
         </button>
       </div>
     </div>
