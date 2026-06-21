@@ -19,6 +19,7 @@ export default function InputForm({ area, onReportReady, onBack }) {
   const [weightUnit, setWeightUnit] = useState("kg");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showProfile, setShowProfile] = useState(false);
 
   const [profile, setProfile] = useState({
     age: "",
@@ -47,42 +48,39 @@ export default function InputForm({ area, onReportReady, onBack }) {
   };
 
   const getHeightDisplay = () => {
-    if (heightUnit === "cm") return `${profile.heightCm} cm`;
-    return `${profile.heightFt}ft ${profile.heightIn || 0}in`;
+    if (heightUnit === "cm") return profile.heightCm ? `${profile.heightCm} cm` : "";
+    return profile.heightFt ? `${profile.heightFt}ft ${profile.heightIn || 0}in` : "";
   };
 
   const getWeightDisplay = () => {
-    if (weightUnit === "kg") return `${profile.weightKg} kg`;
-    return `${profile.weightLbs} lbs`;
+    if (weightUnit === "kg") return profile.weightKg ? `${profile.weightKg} kg` : "";
+    return profile.weightLbs ? `${profile.weightLbs} lbs` : "";
   };
 
   const handleSubmit = async () => {
     setError("");
-    const heightCm = getHeightCm();
-    const weightKg = getWeightKg();
-
-    if (!profile.age || !profile.sex || isNaN(heightCm) || isNaN(weightKg)) {
-      setError("Please fill in all required profile fields (age, sex, height, weight).");
-      return;
-    }
 
     const missingAreaFields = area.fields.filter(
       (f) => f.type !== "text" && !areaData[f.key]
     );
     if (missingAreaFields.length > 0) {
-      setError(`Please answer all health questions (${missingAreaFields.length} still needed).`);
+      setError(`Please answer all the health questions (${missingAreaFields.length} still needed).`);
       return;
     }
 
     setLoading(true);
 
-    const bmi = calculateBMI(weightKg, heightCm);
+    // Build profile — all optional
+    const heightCm = getHeightCm();
+    const weightKg = getWeightKg();
+    const hasBMI = !isNaN(heightCm) && !isNaN(weightKg) && heightCm > 0 && weightKg > 0;
+
     const profilePayload = {
-      age: profile.age,
-      sex: profile.sex,
-      height: getHeightDisplay(),
-      weight: getWeightDisplay(),
-      bmi,
+      age: profile.age || null,
+      sex: profile.sex || null,
+      height: getHeightDisplay() || null,
+      weight: getWeightDisplay() || null,
+      bmi: hasBMI ? calculateBMI(weightKg, heightCm) : null,
       ethnicity: profile.ethnicity || null,
     };
 
@@ -94,10 +92,7 @@ export default function InputForm({ area, onReportReady, onBack }) {
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Server error");
-      }
+      if (!res.ok) throw new Error(data.error || "Server error");
 
       onReportReady({ ...data, profile: profilePayload });
     } catch (err) {
@@ -117,87 +112,100 @@ export default function InputForm({ area, onReportReady, onBack }) {
       </div>
 
       <div className="form-container">
-        {/* Profile Section */}
-        <section className="form-section">
-          <h2 className="form-section-title">Your Profile</h2>
-          <p className="form-section-sub">Used to calibrate clinical thresholds to your demographics.</p>
 
-          <div className="field-grid">
-            <div className="field-group">
-              <label className="field-label">Age <span className="required">*</span></label>
-              <input
-                type="number"
-                className="field-input"
-                placeholder="e.g. 35"
-                min="1"
-                max="120"
-                value={profile.age}
-                onChange={(e) => updateProfile("age", e.target.value)}
-              />
+        {/* Optional Profile Section */}
+        <section className="form-section profile-section">
+          <div className="profile-toggle-row">
+            <div>
+              <h2 className="form-section-title">Your Profile</h2>
+              <p className="form-section-sub">
+                Optional — adding your details helps us personalize your report.
+              </p>
             </div>
-            <div className="field-group">
-              <label className="field-label">Biological Sex <span className="required">*</span></label>
-              <select
-                className="field-input"
-                value={profile.sex}
-                onChange={(e) => updateProfile("sex", e.target.value)}
-              >
-                <option value="">Select...</option>
-                <option>Male</option>
-                <option>Female</option>
-                <option>Intersex</option>
-              </select>
-            </div>
+            <button
+              className="toggle-profile-btn"
+              type="button"
+              onClick={() => setShowProfile((v) => !v)}
+            >
+              {showProfile ? "Hide ▲" : "Add details ▼"}
+            </button>
           </div>
 
-          <div className="field-group">
-            <label className="field-label">
-              Height <span className="required">*</span>
-              <span className="unit-toggle">
-                <button className={`unit-btn ${heightUnit === "cm" ? "active" : ""}`} onClick={() => setHeightUnit("cm")} type="button">cm</button>
-                <button className={`unit-btn ${heightUnit === "ft" ? "active" : ""}`} onClick={() => setHeightUnit("ft")} type="button">ft/in</button>
-              </span>
-            </label>
-            {heightUnit === "cm" ? (
-              <input type="number" className="field-input" placeholder="e.g. 175" value={profile.heightCm} onChange={(e) => updateProfile("heightCm", e.target.value)} />
-            ) : (
-              <div className="dual-input">
-                <input type="number" className="field-input" placeholder="ft" value={profile.heightFt} onChange={(e) => updateProfile("heightFt", e.target.value)} />
-                <input type="number" className="field-input" placeholder="in" value={profile.heightIn} onChange={(e) => updateProfile("heightIn", e.target.value)} />
+          {showProfile && (
+            <div className="profile-fields">
+              <div className="field-grid">
+                <div className="field-group">
+                  <label className="field-label">Age <span className="optional">(optional)</span></label>
+                  <input
+                    type="number"
+                    className="field-input"
+                    placeholder="e.g. 35"
+                    min="1" max="120"
+                    value={profile.age}
+                    onChange={(e) => updateProfile("age", e.target.value)}
+                  />
+                </div>
+                <div className="field-group">
+                  <label className="field-label">Biological Sex <span className="optional">(optional)</span></label>
+                  <select className="field-input" value={profile.sex} onChange={(e) => updateProfile("sex", e.target.value)}>
+                    <option value="">Select or skip...</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Intersex</option>
+                  </select>
+                </div>
               </div>
-            )}
-          </div>
 
-          <div className="field-group">
-            <label className="field-label">
-              Weight <span className="required">*</span>
-              <span className="unit-toggle">
-                <button className={`unit-btn ${weightUnit === "kg" ? "active" : ""}`} onClick={() => setWeightUnit("kg")} type="button">kg</button>
-                <button className={`unit-btn ${weightUnit === "lbs" ? "active" : ""}`} onClick={() => setWeightUnit("lbs")} type="button">lbs</button>
-              </span>
-            </label>
-            {weightUnit === "kg" ? (
-              <input type="number" className="field-input" placeholder="e.g. 75" value={profile.weightKg} onChange={(e) => updateProfile("weightKg", e.target.value)} />
-            ) : (
-              <input type="number" className="field-input" placeholder="e.g. 165" value={profile.weightLbs} onChange={(e) => updateProfile("weightLbs", e.target.value)} />
-            )}
-          </div>
+              <div className="field-group">
+                <label className="field-label">
+                  Height <span className="optional">(optional)</span>
+                  <span className="unit-toggle">
+                    <button className={`unit-btn ${heightUnit === "cm" ? "active" : ""}`} onClick={() => setHeightUnit("cm")} type="button">cm</button>
+                    <button className={`unit-btn ${heightUnit === "ft" ? "active" : ""}`} onClick={() => setHeightUnit("ft")} type="button">ft/in</button>
+                  </span>
+                </label>
+                {heightUnit === "cm" ? (
+                  <input type="number" className="field-input" placeholder="e.g. 175" value={profile.heightCm} onChange={(e) => updateProfile("heightCm", e.target.value)} />
+                ) : (
+                  <div className="dual-input">
+                    <input type="number" className="field-input" placeholder="ft" value={profile.heightFt} onChange={(e) => updateProfile("heightFt", e.target.value)} />
+                    <input type="number" className="field-input" placeholder="in" value={profile.heightIn} onChange={(e) => updateProfile("heightIn", e.target.value)} />
+                  </div>
+                )}
+              </div>
 
-          <div className="field-group">
-            <label className="field-label">Ethnicity <span className="optional">(optional)</span></label>
-            <select className="field-input" value={profile.ethnicity} onChange={(e) => updateProfile("ethnicity", e.target.value)}>
-              <option value="">Select or skip...</option>
-              {ETHNICITIES.map((e) => <option key={e}>{e}</option>)}
-            </select>
-          </div>
+              <div className="field-group">
+                <label className="field-label">
+                  Weight <span className="optional">(optional)</span>
+                  <span className="unit-toggle">
+                    <button className={`unit-btn ${weightUnit === "kg" ? "active" : ""}`} onClick={() => setWeightUnit("kg")} type="button">kg</button>
+                    <button className={`unit-btn ${weightUnit === "lbs" ? "active" : ""}`} onClick={() => setWeightUnit("lbs")} type="button">lbs</button>
+                  </span>
+                </label>
+                {weightUnit === "kg" ? (
+                  <input type="number" className="field-input" placeholder="e.g. 75" value={profile.weightKg} onChange={(e) => updateProfile("weightKg", e.target.value)} />
+                ) : (
+                  <input type="number" className="field-input" placeholder="e.g. 165" value={profile.weightLbs} onChange={(e) => updateProfile("weightLbs", e.target.value)} />
+                )}
+              </div>
+
+              <div className="field-group">
+                <label className="field-label">Ethnicity <span className="optional">(optional)</span></label>
+                <select className="field-input" value={profile.ethnicity} onChange={(e) => updateProfile("ethnicity", e.target.value)}>
+                  <option value="">Select or skip...</option>
+                  {ETHNICITIES.map((e) => <option key={e}>{e}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
         </section>
 
-        {/* Area-Specific Section */}
+        {/* Area-Specific Questions */}
         <section className="form-section" style={{ borderTopColor: area.color }}>
           <h2 className="form-section-title" style={{ color: area.color }}>
             {area.icon} {area.label} Questions
           </h2>
-          <p className="form-section-sub">Answer as accurately as possible for a more useful report.</p>
+          <p className="form-section-sub">Answer as honestly as you can — there are no wrong answers.</p>
 
           {area.fields.map((field) => (
             <div key={field.key} className="field-group">
