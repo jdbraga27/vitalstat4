@@ -429,3 +429,114 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   outline: 2px solid var(--teal);
   outline-offset: 2px;
 }
+/* Profile optional toggle */
+.profile-section { border-top-color: #CBD5E1 !important; }
+
+.profile-toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.toggle-profile-btn {
+  background: var(--slate-100);
+  border: 1px solid var(--slate-300);
+  color: var(--slate-700);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.toggle-profile-btn:hover { background: var(--slate-200); }
+
+.profile-fields { margin-top: 20px; border-top: 1px solid var(--slate-100); padding-top: 20px; }
+
+/* Concern badge (replaces score badge) */
+.concern-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-radius: var(--radius);
+  border: 1.5px solid;
+  max-width: 360px;
+}
+
+.concern-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+.concern-label-text { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--slate-500); margin-bottom: 2px; }
+.concern-value { font-size: 1.1rem; font-weight: 700; }
+
+/* Summary card */
+.summary-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border-left: 4px solid var(--teal);
+  padding: 24px 28px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+}
+
+.summary-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.summary-icon { font-size: 1.1rem; }
+.summary-title { font-weight: 700; font-size: 0.95rem; color: var(--slate-900); }
+.summary-note { font-size: 0.75rem; color: var(--slate-400); margin-left: auto; }
+
+.summary-text {
+  font-size: 1rem;
+  color: var(--slate-700);
+  line-height: 1.75;
+  margin-bottom: 20px;
+}
+
+/* Read more button */
+.read-more-btn {
+  background: transparent;
+  border: 1.5px solid;
+  border-radius: var(--radius-sm);
+  padding: 9px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+.read-more-btn:hover { background: var(--slate-50); }
+
+/* Article links inside report */
+.report-link {
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-word;
+}
+.report-link:hover { color: var(--teal-dark); }
+
+/* Numbered list items in detailed report */
+.report-numbered {
+  font-size: 0.9rem;
+  color: var(--slate-700);
+  line-height: 1.7;
+  margin-bottom: 10px;
+  padding-left: 4px;
+}
+
+@media (max-width: 640px) {
+  .summary-card { padding: 18px 16px; }
+  .concern-badge { max-width: 100%; }
+  .profile-toggle-row { flex-direction: column; }
+  .toggle-profile-btn { width: 100%; text-align: center; }
+}
