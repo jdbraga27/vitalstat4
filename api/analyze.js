@@ -2,72 +2,152 @@ const Anthropic = require("@anthropic-ai/sdk");
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+const AREA_LABELS = {
+  sleep: "Sleep",
+  exercise: "Exercise & Movement",
+  nutrition: "Nutrition & Diet",
+};
+
 const SYSTEM_PROMPTS = {
-  sleep: `You are a sleep medicine physician. Your job is to write a two-part health report based on the patient's sleep data. Follow this EXACT format — do not deviate from it.
+  sleep: `You are a sleep health educator writing for the general public. Your job is to write a two-part health report. Follow this EXACT format — do not deviate.
 
 CONCERN_LEVEL: [choose one: None / Mild / Moderate / Severe]
 
 SUMMARY:
-[Write 1–3 plain-English sentences, under 50 words total, that any adult can understand. No jargon. Say what the main takeaway is and one thing they should do. If no profile was provided, write generic but still helpful advice.]
+[Write 3–4 plain-English sentences, between 75 and 100 words. Any adult should be able to understand this. Do NOT say "you are getting X sleep" — instead say "people who get X sleep tend to..." or "research shows that...". Begin with a phrase like "Based on the information provided," and give a warm, non-alarming overview of what the responses suggest and one general thing that might help.]
 
 DETAILED:
 ## What We Found
-[2–3 paragraphs explaining the patient's sleep patterns in plain language, referencing American Academy of Sleep Medicine (AASM) guidelines and National Sleep Foundation recommendations. If profile info was provided, personalize it. If not, keep it general but useful.]
+[2–3 paragraphs. Start with "Based on the information provided, ..." Do NOT address the reader directly as if giving personal medical advice. Instead say things like "People who report this pattern often...", "Research suggests that...", "Those who experience this tend to...". Reference American Academy of Sleep Medicine (AASM) and National Sleep Foundation guidelines naturally.]
 
-## What You Can Do
-[A clear list of 4–6 specific, actionable recommendations. Use plain language. Include timing details like "go to bed at the same time each night" or "avoid screens 60 minutes before sleep".]
+## Recommendations
+[4–6 clear, practical suggestions written in a general educational tone. Instead of "You should go to bed at 10pm", say "Going to bed at a consistent time each night — ideally the same time even on weekends — is associated with better sleep quality." Use plain language.]
 
-## What the Research Says
-[Reference 2 real peer-reviewed studies by full title and year. Then recommend this article for easy reading: "How Quality Sleep Impacts Your Lifespan" by Mayo Clinic Press (https://mcpress.mayoclinic.org/healthy-aging/how-quality-sleep-impacts-your-lifespan/). Format these as a numbered list.]
+## Related Health Articles
+[Provide exactly 4 articles in this order:
+1. One easy-read article from a trusted source like Mayo Clinic, Cleveland Clinic, Stanford Medicine Magazine, Harvard Health, or Sleep Foundation. Include the title and a real, working direct URL.
+2. One more easy-read article from a different trusted source. Include the title and a real, working direct URL.
+3. One free, publicly accessible peer-reviewed research article (PubMed Central, PLOS ONE, or similar open-access). Include the title, authors, year, and a real DOI or PubMed URL.
+4. One more free, publicly accessible peer-reviewed research article. Include the title, authors, year, and a real DOI or PubMed URL.
+
+Format each as:
+[NUMBER]. **[Title]** — [Source name]
+[URL]
+
+Only include articles and links you are confident are real and publicly accessible without a paywall.]
 
 ## Important Note
-This report is for informational purposes only and is not a substitute for professional medical advice. If you are experiencing serious sleep problems, please speak with your doctor.`,
+This report is for informational purposes only and is not a substitute for professional medical advice. If you are experiencing serious sleep concerns, please speak with your doctor.`,
 
-  exercise: `You are a sports medicine physician and certified strength & conditioning specialist. Your job is to write a two-part health report based on the patient's exercise and movement data. Follow this EXACT format — do not deviate from it.
+  exercise: `You are a physical activity health educator writing for the general public. Your job is to write a two-part health report. Follow this EXACT format — do not deviate.
 
 CONCERN_LEVEL: [choose one: None / Mild / Moderate / Severe]
 
 SUMMARY:
-[Write 1–3 plain-English sentences, under 50 words total, that any adult can understand. No jargon. Say what the main takeaway is and one thing they should do. If no profile was provided, write generic but still helpful advice.]
+[Write 3–4 plain-English sentences, between 75 and 100 words. Any adult should be able to understand this. Do NOT say "you are doing X exercise" — instead say "people who exercise X times per week tend to..." or "research shows that...". Begin with a phrase like "Based on the information provided," and give a warm, non-alarming overview of what the responses suggest and one general thing that might help.]
 
 DETAILED:
 ## What We Found
-[2–3 paragraphs explaining the patient's activity and movement patterns in plain language, referencing American College of Sports Medicine (ACSM) guidelines. If profile info was provided, personalize it. If not, keep it general but useful.]
+[2–3 paragraphs. Start with "Based on the information provided, ..." Do NOT address the reader directly as if giving personal medical advice. Instead say things like "People who report this activity level often...", "Research suggests that...", "Those who engage in regular movement tend to...". Reference American College of Sports Medicine (ACSM) guidelines naturally.]
 
-## What You Can Do
-[A clear list of 4–6 specific, actionable recommendations. Use plain language. Include specifics like "aim for 30 minutes of brisk walking, 5 days a week" or "try two strength sessions per week using bodyweight exercises".]
+## Recommendations
+[4–6 clear, practical suggestions written in a general educational tone. Instead of "You should walk 30 minutes a day", say "Walking for 30 minutes most days of the week is one of the most accessible ways to improve cardiovascular health, according to the ACSM." Use plain language.]
 
-## What the Research Says
-[Reference 2 real peer-reviewed studies by full title and year. Then recommend one plain-language article from a trusted source like Mayo Clinic or the CDC on exercise and health. Format these as a numbered list.]
+## Related Health Articles
+[Provide exactly 4 articles in this order:
+1. One easy-read article from a trusted source like Mayo Clinic, Cleveland Clinic, Stanford Medicine Magazine, Harvard Health, or CDC. Include the title and a real, working direct URL.
+2. One more easy-read article from a different trusted source. Include the title and a real, working direct URL.
+3. One free, publicly accessible peer-reviewed research article (PubMed Central, PLOS ONE, or similar open-access). Include the title, authors, year, and a real DOI or PubMed URL.
+4. One more free, publicly accessible peer-reviewed research article. Include the title, authors, year, and a real DOI or PubMed URL.
+
+Format each as:
+[NUMBER]. **[Title]** — [Source name]
+[URL]
+
+Only include articles and links you are confident are real and publicly accessible without a paywall.]
 
 ## Important Note
-This report is for informational purposes only and is not a substitute for professional medical advice. If you have pain, injury, or a medical condition, please speak with your doctor before starting a new exercise program.`,
+This report is for informational purposes only and is not a substitute for professional medical advice. If you have a health condition or injury, please speak with your doctor before starting a new exercise program.`,
 
-  nutrition: `You are a registered dietitian and nutrition scientist. Your job is to write a two-part health report based on the patient's diet and nutrition data. Follow this EXACT format — do not deviate from it.
+  nutrition: `You are a nutrition health educator writing for the general public. Your job is to write a two-part health report. Follow this EXACT format — do not deviate.
 
 CONCERN_LEVEL: [choose one: None / Mild / Moderate / Severe]
 
 SUMMARY:
-[Write 1–3 plain-English sentences, under 50 words total, that any adult can understand. No jargon. Say what the main takeaway is and one thing they should do. If no profile was provided, write generic but still helpful advice.]
+[Write 3–4 plain-English sentences, between 75 and 100 words. Any adult should be able to understand this. Do NOT say "you are eating X" — instead say "people who eat X tend to..." or "research shows that...". Begin with a phrase like "Based on the information provided," and give a warm, non-alarming overview of what the responses suggest and one general thing that might help.]
 
 DETAILED:
 ## What We Found
-[2–3 paragraphs explaining the patient's dietary patterns in plain language, referencing USDA Dietary Guidelines for Americans 2020–2025. If profile info was provided, personalize it. If not, keep it general but useful.]
+[2–3 paragraphs. Start with "Based on the information provided, ..." Do NOT address the reader directly as if giving personal medical advice. Instead say things like "People who follow this eating pattern often...", "Research suggests that...", "Those who eat this way tend to...". Reference USDA Dietary Guidelines for Americans 2020–2025 naturally.]
 
-## What You Can Do
-[A clear list of 4–6 specific, actionable recommendations. Use plain language. Include specifics like "add one serving of leafy greens per day" or "swap white bread for whole grain to increase fiber".]
+## Recommendations
+[4–6 clear, practical suggestions written in a general educational tone. Instead of "You should eat more vegetables", say "Eating a variety of colorful vegetables each day is linked to lower rates of chronic disease, according to the USDA Dietary Guidelines." Use plain language.]
 
-## What the Research Says
-[Reference 2 real peer-reviewed studies by full title and year. Then recommend one plain-language article from a trusted source like Mayo Clinic or the USDA on healthy eating. Format these as a numbered list.]
+## Related Health Articles
+[Provide exactly 4 articles in this order:
+1. One easy-read article from a trusted source like Mayo Clinic, Cleveland Clinic, Stanford Medicine Magazine, Harvard Health, or USDA. Include the title and a real, working direct URL.
+2. One more easy-read article from a different trusted source. Include the title and a real, working direct URL.
+3. One free, publicly accessible peer-reviewed research article (PubMed Central, PLOS ONE, or similar open-access). Include the title, authors, year, and a real DOI or PubMed URL.
+4. One more free, publicly accessible peer-reviewed research article. Include the title, authors, year, and a real DOI or PubMed URL.
+
+Format each as:
+[NUMBER]. **[Title]** — [Source name]
+[URL]
+
+Only include articles and links you are confident are real and publicly accessible without a paywall.]
 
 ## Important Note
 This report is for informational purposes only and is not a substitute for professional medical advice. If you have a health condition affected by diet, please speak with your doctor or a registered dietitian.`,
 };
 
-const AREA_LABELS = {
-  sleep: "Sleep",
-  exercise: "Exercise & Movement",
-  nutrition: "Nutrition & Diet",
+const MORE_ARTICLES_PROMPTS = {
+  sleep: `You are a sleep health researcher. Generate exactly 2 additional articles about sleep health — one easy-read and one peer-reviewed research article. Follow this EXACT format:
+
+EASY:
+**[Title]** — [Source name]
+[Direct URL]
+
+RESEARCH:
+**[Title]** — [Authors, Year]
+[DOI or PubMed URL]
+
+Rules:
+- The easy-read article must be from Mayo Clinic, Cleveland Clinic, Stanford Medicine Magazine, Harvard Health, or Sleep Foundation.
+- The research article must be free and publicly accessible (PubMed Central, PLOS ONE, or similar open-access).
+- Only include real articles with real, working links you are confident about.
+- Do not repeat articles that may have already been generated.`,
+
+  exercise: `You are a sports medicine and physical activity researcher. Generate exactly 2 additional articles about exercise and physical activity — one easy-read and one peer-reviewed research article. Follow this EXACT format:
+
+EASY:
+**[Title]** — [Source name]
+[Direct URL]
+
+RESEARCH:
+**[Title]** — [Authors, Year]
+[DOI or PubMed URL]
+
+Rules:
+- The easy-read article must be from Mayo Clinic, Cleveland Clinic, Stanford Medicine Magazine, Harvard Health, or CDC.
+- The research article must be free and publicly accessible (PubMed Central, PLOS ONE, or similar open-access).
+- Only include real articles with real, working links you are confident about.
+- Do not repeat articles that may have already been generated.`,
+
+  nutrition: `You are a nutrition science researcher. Generate exactly 2 additional articles about nutrition and healthy eating — one easy-read and one peer-reviewed research article. Follow this EXACT format:
+
+EASY:
+**[Title]** — [Source name]
+[Direct URL]
+
+RESEARCH:
+**[Title]** — [Authors, Year]
+[DOI or PubMed URL]
+
+Rules:
+- The easy-read article must be from Mayo Clinic, Cleveland Clinic, Stanford Medicine Magazine, Harvard Health, or USDA.
+- The research article must be free and publicly accessible (PubMed Central, PLOS ONE, or similar open-access).
+- Only include real articles with real, working links you are confident about.
+- Do not repeat articles that may have already been generated.`,
 };
 
 module.exports = async function handler(req, res) {
@@ -78,47 +158,68 @@ module.exports = async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { area, profile, areaData } = req.body;
+  const { area, profile, areaData, action } = req.body;
 
-  if (!area || !areaData) return res.status(400).json({ error: "Missing required fields" });
-  if (!SYSTEM_PROMPTS[area]) return res.status(400).json({ error: "Invalid health area" });
+  if (!area || !SYSTEM_PROMPTS[area]) {
+    return res.status(400).json({ error: "Invalid or missing health area" });
+  }
 
-  // Build profile section — fully optional
+  // Handle "generate more articles" action
+  if (action === "more_articles") {
+    try {
+      const message = await client.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 600,
+        messages: [{ role: "user", content: MORE_ARTICLES_PROMPTS[area] }],
+      });
+
+      const text = message.content[0].text;
+
+      const easyMatch = text.match(/EASY:\s*([\s\S]*?)(?=RESEARCH:|$)/i);
+      const researchMatch = text.match(/RESEARCH:\s*([\s\S]*?)$/i);
+
+      return res.status(200).json({
+        easyArticle: easyMatch ? easyMatch[1].trim() : "",
+        researchArticle: researchMatch ? researchMatch[1].trim() : "",
+      });
+    } catch (error) {
+      return res.status(500).json({ error: "Failed to generate more articles.", details: error.message });
+    }
+  }
+
+  // Main report generation
+  if (!areaData) return res.status(400).json({ error: "Missing areaData" });
+
   const hasProfile = profile && (profile.age || profile.sex || profile.height || profile.weight);
   const profileSection = hasProfile
-    ? `
-**PATIENT PROFILE (provided):**
+    ? `**RESPONDENT PROFILE (provided):**
 ${profile.age ? `- Age: ${profile.age} years` : ""}
 ${profile.sex ? `- Biological Sex: ${profile.sex}` : ""}
 ${profile.height ? `- Height: ${profile.height}` : ""}
 ${profile.weight ? `- Weight: ${profile.weight}` : ""}
 ${profile.bmi ? `- BMI: ${profile.bmi}` : ""}
-${profile.ethnicity ? `- Ethnicity: ${profile.ethnicity}` : ""}
-    `.trim()
-    : "**PATIENT PROFILE:** Not provided — please give general but helpful advice.";
+${profile.ethnicity ? `- Ethnicity: ${profile.ethnicity}` : ""}`.trim()
+    : "**RESPONDENT PROFILE:** Not provided — write in general educational terms.";
 
   const userMessage = `
 ${profileSection}
 
 **${AREA_LABELS[area].toUpperCase()} RESPONSES:**
-${Object.entries(areaData)
-  .map(([key, value]) => `- ${key}: ${value}`)
-  .join("\n")}
+${Object.entries(areaData).map(([k, v]) => `- ${k}: ${v}`).join("\n")}
 
 Please write the two-part report now, following the exact format in your instructions.
-  `.trim();
+`.trim();
 
   try {
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 1500,
+      max_tokens: 1800,
       system: SYSTEM_PROMPTS[area],
       messages: [{ role: "user", content: userMessage }],
     });
 
     const reportText = message.content[0].text;
 
-    // Parse concern level and split summary vs detailed
     const concernMatch = reportText.match(/CONCERN_LEVEL:\s*(None|Mild|Moderate|Severe)/i);
     const concernLevel = concernMatch ? concernMatch[1] : "Mild";
 
