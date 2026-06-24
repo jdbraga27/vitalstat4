@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import Home from "./pages/Home";
 import InputForm from "./pages/InputForm";
 import Report from "./pages/Report";
@@ -43,6 +44,7 @@ export default function App() {
       {screen === "report" && (
         <Report data={reportData} area={selectedArea} onStartOver={handleStartOver} />
       )}
+      <Analytics />
     </div>
   );
 }
