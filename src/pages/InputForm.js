@@ -20,6 +20,7 @@ export default function InputForm({ area, onReportReady, onBack }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showProfile, setShowProfile] = useState(false);
+  const [disclaimerChecked, setDisclaimerChecked] = useState(false);
 
   const [profile, setProfile] = useState({
     age: "",
@@ -70,7 +71,6 @@ export default function InputForm({ area, onReportReady, onBack }) {
 
     setLoading(true);
 
-    // Build profile — all optional
     const heightCm = getHeightCm();
     const weightKg = getWeightKg();
     const hasBMI = !isNaN(heightCm) && !isNaN(weightKg) && heightCm > 0 && weightKg > 0;
@@ -102,6 +102,9 @@ export default function InputForm({ area, onReportReady, onBack }) {
     }
   };
 
+  // Button is only active when checkbox is checked and not loading
+  const buttonDisabled = !disclaimerChecked || loading;
+
   return (
     <div className="form-page">
       <div className="form-header">
@@ -119,7 +122,7 @@ export default function InputForm({ area, onReportReady, onBack }) {
             <div>
               <h2 className="form-section-title">Your Profile</h2>
               <p className="form-section-sub">
-                Optional — adding your details helps us personalize your report.
+                Optional — adding your details helps personalize your report.
               </p>
             </div>
             <button
@@ -228,17 +231,38 @@ export default function InputForm({ area, onReportReady, onBack }) {
           ))}
         </section>
 
+        {/* Required Disclaimer Checkbox */}
+        <section className="disclaimer-checkbox-section">
+          <label className="disclaimer-checkbox-label">
+            <input
+              type="checkbox"
+              className="disclaimer-checkbox"
+              checked={disclaimerChecked}
+              onChange={(e) => setDisclaimerChecked(e.target.checked)}
+            />
+            <span>
+              I understand that the report produced by this form is <strong>not official medical advice</strong>. It is for informational purposes only, and I agree to consult a qualified healthcare professional for any medical concerns. <span className="required">*</span>
+            </span>
+          </label>
+          {!disclaimerChecked && (
+            <p className="disclaimer-checkbox-hint">
+              You must agree to this before generating your report.
+            </p>
+          )}
+        </section>
+
         {error && (
           <div className="form-error">
             <span>⚠</span> {error}
           </div>
         )}
 
+        {/* Button is visually grey and truly disabled until checkbox is checked */}
         <button
-          className="submit-btn"
+          className={`submit-btn ${buttonDisabled ? "submit-btn-disabled" : ""}`}
           onClick={handleSubmit}
-          disabled={loading}
-          style={{ background: loading ? "#94A3B8" : area.color }}
+          disabled={buttonDisabled}
+          aria-disabled={buttonDisabled}
         >
           {loading ? (
             <span className="loading-state">
@@ -250,9 +274,6 @@ export default function InputForm({ area, onReportReady, onBack }) {
           )}
         </button>
 
-        <p className="form-disclaimer">
-          This tool is for informational purposes only and is not a substitute for professional medical advice.
-        </p>
       </div>
     </div>
   );
