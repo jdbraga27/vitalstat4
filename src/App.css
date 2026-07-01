@@ -429,7 +429,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   outline: 2px solid var(--teal);
   outline-offset: 2px;
 }
-/* Profile optional toggle */
+/* ── Optional profile toggle ── */
 .profile-section { border-top-color: #CBD5E1 !important; }
 
 .profile-toggle-row {
@@ -453,25 +453,114 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   transition: background 0.15s;
 }
 .toggle-profile-btn:hover { background: var(--slate-200); }
+.profile-fields {
+  margin-top: 20px;
+  border-top: 1px solid var(--slate-100);
+  padding-top: 20px;
+}
 
-.profile-fields { margin-top: 20px; border-top: 1px solid var(--slate-100); padding-top: 20px; }
+/* ── Disclaimer checkbox ── */
+.disclaimer-checkbox-section {
+  background: #F5F3FF;
+  border: 1.5px solid #C4B0F0;
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 20px;
+}
 
-/* Concern badge (replaces score badge) */
+.disclaimer-checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: var(--slate-700);
+  line-height: 1.6;
+}
+
+.disclaimer-checkbox {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  margin-top: 2px;
+  accent-color: #7C3AED;
+  cursor: pointer;
+}
+
+.disclaimer-checkbox-hint {
+  margin-top: 10px;
+  font-size: 0.78rem;
+  color: #7C3AED;
+  padding-left: 32px;
+}
+
+/* ── Submit button states ── */
+/* Active state — uses area color, set via inline style in InputForm.js */
+.submit-btn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s, background 0.2s;
+}
+
+/* Disabled/grey state — checkbox not yet checked */
+.submit-btn-disabled {
+  background: #94A3B8 !important;
+  cursor: not-allowed !important;
+  opacity: 0.75;
+}
+.submit-btn-disabled:hover {
+  transform: none !important;
+  opacity: 0.75 !important;
+}
+
+/* Active state hover */
+.submit-btn:not(.submit-btn-disabled):hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+/* ── Concern badge — always lavender, never red/yellow ── */
 .concern-badge {
   display: inline-flex;
   align-items: center;
   gap: 14px;
   padding: 14px 20px;
   border-radius: var(--radius);
-  border: 1.5px solid;
+  background: #F0EBFF;
+  border: 1.5px solid #C4B0F0;
   max-width: 360px;
 }
 
-.concern-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
-.concern-label-text { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--slate-500); margin-bottom: 2px; }
-.concern-value { font-size: 1.1rem; font-weight: 700; }
+.concern-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
 
-/* Summary card */
+.concern-label-text {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7C6BAF;
+  margin-bottom: 2px;
+}
+
+.concern-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #5B21B6;
+}
+
+/* ── Summary card ── */
 .summary-card {
   background: var(--white);
   border-radius: var(--radius);
@@ -490,7 +579,6 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 
 .summary-icon { font-size: 1.1rem; }
 .summary-title { font-weight: 700; font-size: 0.95rem; color: var(--slate-900); }
-.summary-note { font-size: 0.75rem; color: var(--slate-400); margin-left: auto; }
 
 .summary-text {
   font-size: 1rem;
@@ -499,7 +587,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   margin-bottom: 20px;
 }
 
-/* Read more button */
+/* ── Read more button ── */
 .read-more-btn {
   background: transparent;
   border: 1.5px solid;
@@ -516,16 +604,115 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 }
 .read-more-btn:hover { background: var(--slate-50); }
 
-/* Article links inside report */
+/* ── Articles section ── */
+.articles-section {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow-sm);
+  margin-top: 16px;
+}
+
+.articles-section-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.2rem;
+  color: var(--slate-900);
+  margin-bottom: 6px;
+}
+
+.articles-section-sub {
+  font-size: 0.8rem;
+  color: var(--slate-500);
+  margin-bottom: 20px;
+}
+
+.articles-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 640px) {
+  .articles-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.article-card {
+  display: block;
+  border: 1.5px solid var(--slate-200);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  background: var(--slate-50);
+}
+
+.article-card:hover {
+  border-color: #C4B0F0;
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.article-card-type {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7C3AED;
+  margin-bottom: 6px;
+}
+
+.article-card-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--slate-900);
+  line-height: 1.45;
+  margin-bottom: 6px;
+}
+
+.article-card-source {
+  font-size: 0.78rem;
+  color: var(--slate-500);
+  margin-bottom: 6px;
+}
+
+.article-card-url {
+  font-size: 0.72rem;
+  color: #7C3AED;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+/* ── Load more articles button ── */
+.more-articles-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  border: 1.5px dashed #C4B0F0;
+  color: #7C3AED;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.more-articles-btn:hover:not(:disabled) { background: #F5F3FF; }
+.more-articles-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Inline report links ── */
 .report-link {
   color: var(--teal);
   text-decoration: underline;
   text-underline-offset: 2px;
   word-break: break-word;
 }
-.report-link:hover { color: var(--teal-dark); }
+.report-link:hover { color: var(--teal-dark, #0F766E); }
 
-/* Numbered list items in detailed report */
 .report-numbered {
   font-size: 0.9rem;
   color: var(--slate-700);
@@ -534,9 +721,11 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   padding-left: 4px;
 }
 
+/* ── Responsive ── */
 @media (max-width: 640px) {
   .summary-card { padding: 18px 16px; }
   .concern-badge { max-width: 100%; }
   .profile-toggle-row { flex-direction: column; }
   .toggle-profile-btn { width: 100%; text-align: center; }
+  .articles-section { padding: 20px 16px; }
 }
