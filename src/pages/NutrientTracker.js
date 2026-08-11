@@ -24,6 +24,30 @@ function addNutrients(a, b) {
   return out;
 }
 
+function remainingText(n, value, periodWord) {
+  const { goalType, max, min, unit } = n;
+  if (goalType === "ceiling") {
+    const diff = max - value;
+    if (diff >= 0) return `You have about ${diff.toFixed(1)}${unit} of room left ${periodWord}.`;
+    return `You're about ${Math.abs(diff).toFixed(1)}${unit} over the guideline ${periodWord}.`;
+  }
+  if (goalType === "floor") {
+    const diff = min - value;
+    if (diff > 0) return `About ${diff.toFixed(1)}${unit} more would reach the daily minimum.`;
+    return `You've passed the daily minimum by ${Math.abs(diff).toFixed(1)}${unit}.`;
+  }
+  if (goalType === "range") {
+    if (value < min) return `About ${(min - value).toFixed(1)}${unit} more would reach the low end of the range.`;
+    if (value > max) return `About ${(value - max).toFixed(1)}${unit} over the top of the range.`;
+    return `About ${(max - value).toFixed(1)}${unit} of room left in the range ${periodWord}.`;
+  }
+  const diff = max - value;
+  if (diff >= 0) return `About ${diff.toFixed(1)}${unit} under the ${max}${unit} reference.`;
+  return `About ${Math.abs(diff).toFixed(1)}${unit} over the ${max}${unit} reference.`;
+}
+
+const SEGMENT_COLORS = ["#0D9488", "#F59E0B", "#7C3AED", "#DB2777", "#0EA5E9", "#65A30D", "#EA580C", "#9333EA"];
+
 let itemIdCounter = 0;
 
 export default function NutrientTracker({ onBack }) {
@@ -219,19 +243,57 @@ export default function NutrientTracker({ onBack }) {
                 const value = perDay[key] || 0;
                 const evalResult = evaluateNutrient(n, value);
                 const cap = n.max || n.idealMin || n.min || value || 1;
-                const pct = Math.min(100, (value / cap) * 100);
-                const barColor = evalResult.status === "good" ? "#22C55E"
-                  : evalResult.status === "watch" ? "#F59E0B"
-                  : evalResult.status === "over" ? "#EF4444"
-                  : evalResult.status === "under" ? "#94A3B8" : "#CBD5E1";
+
+                const divisor = period === "week" ? Math.max(loggedDayCount, 1) : 1;
+                const contribMap = {};
+                activeDays.forEach((arr) => arr.forEach((it) => {
+                  const v = it.nutrients[key] || 0;
+                  if (!v) return;
+                  contribMap[it.name] = (contribMap[it.name] || 0) + v;
+                }));
+                const contributions = Object.entries(contribMap)
+                  .map(([name, total]) => ({ name, value: total / divisor }))
+                  .sort((a, b) => b.value - a.value);
+
+                let used = 0;
+                const segments = contributions.map((c, i) => {
+                  const rawPct = (c.value / cap) * 100;
+                  const avail = Math.max(0, 100 - used);
+                  const width = Math.min(rawPct, avail);
+                  used += width;
+                  return { ...c, width, color: SEGMENT_COLORS[i % SEGMENT_COLORS.length] };
+                }).filter((s) => s.width > 0);
+
+                const periodWord = period === "week" ? "on an average day" : "today";
+
                 return (
                   <div key={key} className="result-row">
                     <div className="result-row-head">
                       <span className="result-row-label" style={{ color: n.color }}>{n.icon} {n.label}</span>
                       <span className="result-row-value">{value.toFixed(1)}{n.unit}</span>
                     </div>
-                    <div className="result-bar-track"><div className="result-bar-fill" style={{ width: `${pct}%`, background: barColor }} /></div>
+                    <div className="result-bar-track">
+                      {segments.map((s, i) => (
+                        <div
+                          key={i}
+                          className="result-bar-segment"
+                          style={{ width: `${s.width}%`, background: s.color }}
+                          title={`${s.name}: ${s.value.toFixed(1)}${n.unit}`}
+                        />
+                      ))}
+                    </div>
                     <div className={`result-status status-${evalResult.status}`}>{evalResult.message}</div>
+                    <div className="result-remaining">{remainingText(n, value, periodWord)}</div>
+                    {contributions.length > 0 && (
+                      <div className="result-legend">
+                        {contributions.map((c, i) => (
+                          <span key={c.name} className="result-legend-item">
+                            <span className="result-legend-dot" style={{ background: SEGMENT_COLORS[i % SEGMENT_COLORS.length] }} />
+                            {c.name} ({c.value.toFixed(1)}{n.unit})
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
