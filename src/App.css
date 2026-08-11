@@ -854,8 +854,12 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .result-row-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
 .result-row-label { font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; }
 .result-row-value { font-size: 0.85rem; font-weight: 700; color: var(--slate-800); }
-.result-bar-track { height: 10px; border-radius: 999px; background: var(--slate-100); overflow: hidden; }
-.result-bar-fill { height: 100%; border-radius: 999px; transition: width 0.3s; }
+.result-bar-track { display: flex; height: 10px; border-radius: 999px; background: var(--slate-100); overflow: hidden; }
+.result-bar-segment { height: 100%; transition: width 0.3s; }
+.result-remaining { font-size: 0.78rem; color: var(--slate-600); margin-top: 4px; font-weight: 500; }
+.result-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 8px; }
+.result-legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--slate-500); }
+.result-legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .result-status { font-size: 0.78rem; margin-top: 5px; }
 .status-good { color: #15803D; }
 .status-watch { color: #B45309; }
