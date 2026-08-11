@@ -205,10 +205,8 @@ export default function Report({ data, area, onStartOver }) {
         {/* Articles — always shown, expandable with Load More */}
         {articles.length > 0 && (
           <div className="articles-section">
-            <h3 className="articles-section-title">📚 Related Health Articles</h3>
-            <p className="articles-section-sub">
-              Easy-read articles first, followed by free peer-reviewed research.
-            </p>
+            <h3 className="articles-section-title">📚 Related Articles</h3>
+           
 
             <div className="articles-grid">
               {articles.map((article, i) => {
