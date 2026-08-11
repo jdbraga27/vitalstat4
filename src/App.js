@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Home from "./pages/Home";
 import InputForm from "./pages/InputForm";
 import Report from "./pages/Report";
+import NutrientTracker from "./pages/NutrientTracker";
 import "./App.css";
 
 export default function App() {
@@ -30,9 +31,12 @@ export default function App() {
     setSelectedArea(null);
   };
 
+  const handleOpenTracker = () => setScreen("tracker");
+  const handleTrackerBack = () => setScreen("home");
+
   return (
     <div className="app">
-      {screen === "home" && <Home onSelectArea={handleSelectArea} />}
+      {screen === "home" && <Home onSelectArea={handleSelectArea} onOpenTracker={handleOpenTracker} />}
       {screen === "input" && (
         <InputForm
           area={selectedArea}
@@ -43,6 +47,7 @@ export default function App() {
       {screen === "report" && (
         <Report data={reportData} area={selectedArea} onStartOver={handleStartOver} />
       )}
+      {screen === "tracker" && <NutrientTracker onBack={handleTrackerBack} />}
     </div>
   );
 }
