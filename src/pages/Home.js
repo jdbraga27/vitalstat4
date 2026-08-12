@@ -1,7 +1,7 @@
 import React from "react";
 import { HEALTH_AREAS } from "../utils/healthAreas";
 
-export default function Home({ onSelectArea, onOpenTracker }) {
+export default function Home({ onSelectArea, onOpenTracker, onOpenWater }) {
   return (
     <div className="home">
       <header className="home-header">
@@ -49,6 +49,16 @@ export default function Home({ onSelectArea, onOpenTracker }) {
             <span className="tracker-bar-sub">Log what you ate or drank and see how it stacks up — caffeine, sodium, sugar, and more.</span>
           </div>
           <span className="tracker-bar-arrow">→</span>
+        </button>
+
+        <div className="tracker-divider">or</div>
+        <button className="water-bar" onClick={onOpenWater} aria-label="Track your water">
+          <span className="water-bar-icon">💧</span>
+          <div className="water-bar-info">
+            <span className="water-bar-title">Track your water</span>
+            <span className="water-bar-sub">Log glasses and bottles and see how you're doing against today's goal.</span>
+          </div>
+          <span className="water-bar-arrow">→</span>
         </button>
       </main>
 
