@@ -958,3 +958,22 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 }
 
 .water-source { font-size: 0.72rem; color: var(--slate-400); text-align: center; line-height: 1.6; }
+/* ── Quick-track boxes (nutrients + water) at top of Home ── */
+.quick-track-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 28px; }
+@media (max-width: 600px) { .quick-track-grid { grid-template-columns: 1fr; } }
+
+.quick-track-card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  padding: 22px; border-radius: 16px;
+  border: 1.5px dashed;
+  cursor: pointer; text-align: left;
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+.quick-track-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.quick-track-icon { font-size: 1.8rem; }
+.quick-track-title { font-weight: 700; font-size: 1rem; color: var(--slate-900); }
+.quick-track-sub { font-size: 0.8rem; color: var(--slate-500); line-height: 1.4; }
+.quick-track-arrow { font-size: 1rem; margin-top: 4px; }
+
+.tracker-box { border-color: var(--coral); background: var(--coral-light); }
+.water-box { border-color: var(--water-blue); background: var(--water-light); }
