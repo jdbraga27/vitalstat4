@@ -3,6 +3,7 @@ import Home from "./pages/Home";
 import InputForm from "./pages/InputForm";
 import Report from "./pages/Report";
 import NutrientTracker from "./pages/NutrientTracker";
+import WaterTracker from "./pages/WaterTracker";
 import "./App.css";
 
 export default function App() {
@@ -33,10 +34,12 @@ export default function App() {
 
   const handleOpenTracker = () => setScreen("tracker");
   const handleTrackerBack = () => setScreen("home");
+  const handleOpenWater = () => setScreen("water");
+  const handleWaterBack = () => setScreen("home");
 
   return (
     <div className="app">
-      {screen === "home" && <Home onSelectArea={handleSelectArea} onOpenTracker={handleOpenTracker} />}
+      {screen === "home" && <Home onSelectArea={handleSelectArea} onOpenTracker={handleOpenTracker} onOpenWater={handleOpenWater} />}
       {screen === "input" && (
         <InputForm
           area={selectedArea}
@@ -48,6 +51,7 @@ export default function App() {
         <Report data={reportData} area={selectedArea} onStartOver={handleStartOver} />
       )}
       {screen === "tracker" && <NutrientTracker onBack={handleTrackerBack} />}
+      {screen === "water" && <WaterTracker onBack={handleWaterBack} />}
     </div>
   );
 }
