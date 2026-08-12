@@ -824,9 +824,13 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .day-tab.active { background: var(--slate-900); border-color: var(--slate-900); color: white; }
 .day-tab.has-items::after { content: '•'; margin-left: 4px; color: var(--coral); }
 
-.add-item-row { display: flex; gap: 8px; position: relative; flex-wrap: wrap; }
-.add-item-input { flex: 1; min-width: 160px; }
-.qty-input { width: 70px; }
+.add-item-row { display: flex; gap: 10px; position: relative; flex-wrap: wrap; align-items: flex-end; }
+.add-item-field { display: flex; flex-direction: column; gap: 4px; }
+.add-item-field-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--slate-400); }
+.add-item-field-name { flex: 1; min-width: 160px; position: relative; }
+.servings-input { width: 90px; }
+.size-input { width: 110px; }
+.add-item-submit { width: auto; margin-top: 0; padding: 10px 20px; }
 
 .suggestion-list {
   position: absolute; top: calc(100% + 4px); left: 0; right: 0;
