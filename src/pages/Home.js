@@ -21,6 +21,23 @@ export default function Home({ onSelectArea, onOpenTracker, onOpenWater }) {
       </header>
 
       <main className="home-main">
+        <div className="quick-track-grid">
+          <button className="quick-track-card tracker-box" onClick={onOpenTracker} aria-label="Track your nutrients">
+            <span className="quick-track-icon">🥤</span>
+            <span className="quick-track-title">Track your nutrients</span>
+            <span className="quick-track-sub">Log what you ate or drank and see how it stacks up — caffeine, sodium, sugar, and more.</span>
+            <span className="quick-track-arrow" style={{ color: "var(--coral-dark)" }}>→</span>
+          </button>
+          <button className="quick-track-card water-box" onClick={onOpenWater} aria-label="Track your water">
+            <span className="quick-track-icon">💧</span>
+            <span className="quick-track-title">Track your water</span>
+            <span className="quick-track-sub">Log glasses and bottles and see how you're doing against today's goal.</span>
+            <span className="quick-track-arrow" style={{ color: "var(--water-blue-dark)" }}>→</span>
+          </button>
+        </div>
+
+        <div className="tracker-divider">or</div>
+
         <h2 className="section-label">Choose your health focus</h2>
         <div className="area-grid">
           {HEALTH_AREAS.map((area) => (
@@ -40,26 +57,6 @@ export default function Home({ onSelectArea, onOpenTracker, onOpenWater }) {
             </button>
           ))}
         </div>
-
-        <div className="tracker-divider">or</div>
-        <button className="tracker-bar" onClick={onOpenTracker} aria-label="Track your nutrients">
-          <span className="tracker-bar-icon">🥤</span>
-          <div className="tracker-bar-info">
-            <span className="tracker-bar-title">Track your nutrients</span>
-            <span className="tracker-bar-sub">Log what you ate or drank and see how it stacks up — caffeine, sodium, sugar, and more.</span>
-          </div>
-          <span className="tracker-bar-arrow">→</span>
-        </button>
-
-        <div className="tracker-divider">or</div>
-        <button className="water-bar" onClick={onOpenWater} aria-label="Track your water">
-          <span className="water-bar-icon">💧</span>
-          <div className="water-bar-info">
-            <span className="water-bar-title">Track your water</span>
-            <span className="water-bar-sub">Log glasses and bottles and see how you're doing against today's goal.</span>
-          </div>
-          <span className="water-bar-arrow">→</span>
-        </button>
       </main>
 
       <footer className="home-footer">
