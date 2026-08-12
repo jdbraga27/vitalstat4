@@ -91,7 +91,32 @@ const FOOD_COLOR_RULES = [
   [/\bsalt\b/, "#4E342E"],
   [/soy sauce/, "#2E1A0F"],
   [/salad|lettuce|greens|spinach|kale/, "#4CAF50"],
-  [/beef|steak/, "#7B3F1D"],
+  [/beef|steak|taco/, "#7B3F1D"],
+  [/root beer/, "#5C3A21"],
+  [/ginger ale/, "#E8C468"],
+  [/gatorade|powerade/, "#2E86DE"],
+  [/coconut water/, "#E8F6F3"],
+  [/kombucha/, "#B8860B"],
+  [/sparkling water/, "#B3E5FC"],
+  [/lemonade/, "#F9E24B"],
+  [/apple juice/, "#D98E2B"],
+  [/almond milk/, "#EFE6D8"],
+  [/oat milk/, "#E6D8B8"],
+  [/bagel/, "#C9A15A"],
+  [/donut/, "#C98A5B"],
+  [/avocado/, "#6B8E4E"],
+  [/sweet potato/, "#E07A2C"],
+  [/turkey/, "#C9A876"],
+  [/sushi/, "#F2B6C1"],
+  [/tofu/, "#F0EAD6"],
+  [/peanut butter/, "#8B5A2B"],
+  [/popcorn/, "#F3E5AB"],
+  [/granola bar/, "#B98A4D"],
+  [/ice cream/, "#FDF6EC"],
+  [/burrito/, "#D9A441"],
+  [/caesar salad/, "#6BA84F"],
+  [/\brice\b/, "#EDE6D6"],
+  [/pasta/, "#E8C97A"],
 ];
 
 function hashString(s) {
@@ -148,6 +173,22 @@ function getFoodColor(name) {
   return SEGMENT_COLORS[hashString(lower) % SEGMENT_COLORS.length];
 }
 
+function trimNum(n) {
+  return Number(n.toFixed(2)).toString();
+}
+
+// Pulls a leading numeric amount + unit out of a serving label, preferring a
+// parenthetical like "(12oz)" over a leading count like "1 can".
+function parseSize(label) {
+  if (!label) return null;
+  let m = label.match(/\(([\d.]+)\s*([a-zA-Z]+)\)/);
+  if (!m) m = label.match(/([\d.]+)\s*([a-zA-Z%]+)/);
+  if (!m) return null;
+  return { amount: parseFloat(m[1]), unit: m[2] };
+}
+
+const SERVINGS_OPTIONS = Array.from({ length: 24 }, (_, i) => trimNum(0.25 * (i + 1)));
+
 let itemIdCounter = 0;
 
 export default function NutrientTracker({ onBack }) {
@@ -158,11 +199,18 @@ export default function NutrientTracker({ onBack }) {
   const [activeDay, setActiveDay] = useState(0);
   const [nameInput, setNameInput] = useState("");
   const [qtyInput, setQtyInput] = useState(1);
+  const [sizeInput, setSizeInput] = useState("");
   const [pickedDbItem, setPickedDbItem] = useState(null);
   const [error, setError] = useState("");
 
   const dayCount = period === "week" ? 7 : 1;
-  const suggestions = nameInput.trim().length > 1 ? findMatches(nameInput, 6) : [];
+  const suggestions = nameInput.trim().length > 1 ? findMatches(nameInput, 10) : [];
+
+  const matchedForSize = (pickedDbItem && pickedDbItem.name === nameInput) ? pickedDbItem : findExact(nameInput);
+  const baseSizeForOptions = matchedForSize ? parseSize(matchedForSize.servingLabel) : null;
+  const sizeOptions = baseSizeForOptions
+    ? [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3].map((m) => `${trimNum(baseSizeForOptions.amount * m)} ${baseSizeForOptions.unit}`)
+    : [];
 
   const toggleNutrient = (key) =>
     setSelectedKeys((keys) => (keys.includes(key) ? keys.filter((k) => k !== key) : [...keys, key]));
@@ -173,20 +221,33 @@ export default function NutrientTracker({ onBack }) {
     setStep("log");
   };
 
-  const pickSuggestion = (it) => { setNameInput(it.name); setPickedDbItem(it); };
+  const pickSuggestion = (it) => {
+    setNameInput(it.name);
+    setPickedDbItem(it);
+    const sz = parseSize(it.servingLabel);
+    setSizeInput(sz ? `${trimNum(sz.amount)} ${sz.unit}` : it.servingLabel);
+  };
 
   const addItem = async () => {
     const name = nameInput.trim();
     if (!name) return;
     const qty = parseFloat(qtyInput) || 1;
     const matched = (pickedDbItem && pickedDbItem.name === name) ? pickedDbItem : findExact(name);
+    const baseSize = matched ? parseSize(matched.servingLabel) : null;
+    const sizeNum = parseFloat(sizeInput);
+    const sizeScale = (baseSize && baseSize.amount && !isNaN(sizeNum) && sizeNum > 0) ? sizeNum / baseSize.amount : 1;
+    const effectiveQty = qty * sizeScale;
+    const sizeLabel = sizeInput.trim() || (matched ? matched.servingLabel : "serving");
     const id = ++itemIdCounter;
 
+    // Clear the inputs right away so the form feels responsive even while an AI estimate is pending.
+    setNameInput(""); setQtyInput(1); setSizeInput(""); setPickedDbItem(null);
+
     if (matched) {
-      const newItem = { id, name: matched.name, servingLabel: matched.servingLabel, qty, source: "db", nutrients: scaleNutrients(matched.nutrients, qty) };
+      const newItem = { id, name: matched.name, servingLabel: sizeLabel, qty, source: "db", nutrients: scaleNutrients(matched.nutrients, effectiveQty) };
       setDays((d) => d.map((arr, i) => (i === activeDay ? [...arr, newItem] : arr)));
     } else {
-      const pendingItem = { id, name, servingLabel: "serving", qty, source: "pending", nutrients: { ...EMPTY_NUTRIENTS } };
+      const pendingItem = { id, name, servingLabel: sizeLabel, qty, source: "pending", nutrients: { ...EMPTY_NUTRIENTS } };
       setDays((d) => d.map((arr, i) => (i === activeDay ? [...arr, pendingItem] : arr)));
       try {
         const res = await fetch("/api/estimate-nutrients", {
@@ -206,7 +267,6 @@ export default function NutrientTracker({ onBack }) {
           : arr));
       }
     }
-    setNameInput(""); setQtyInput(1); setPickedDbItem(null);
   };
 
   const removeItem = (dayIdx, id) =>
@@ -281,34 +341,55 @@ export default function NutrientTracker({ onBack }) {
               <div className="tracker-card-sub">Try "Diet Coke", "coffee", or "bag of chips" — we'll match it if we can, or estimate it if not.</div>
 
               <div className="add-item-row">
-                <input
-                  className="field-input add-item-input"
-                  placeholder="What did you eat or drink?"
-                  value={nameInput}
-                  onChange={(e) => { setNameInput(e.target.value); setPickedDbItem(null); }}
-                  onKeyDown={(e) => e.key === "Enter" && addItem()}
-                />
-                <input
-                  className="field-input qty-input"
-                  type="number"
-                  min="0.25"
-                  step="0.25"
-                  value={qtyInput}
-                  onChange={(e) => setQtyInput(e.target.value)}
-                  title="Servings"
-                />
-                <button className="tracker-cta" style={{ width: "auto", marginTop: 0, padding: "10px 20px" }} onClick={addItem}>Add</button>
+                <div className="add-item-field add-item-field-name">
+                  <span className="add-item-field-label">Item</span>
+                  <input
+                    className="field-input add-item-input"
+                    placeholder="What did you eat or drink?"
+                    value={nameInput}
+                    onChange={(e) => { setNameInput(e.target.value); setPickedDbItem(null); }}
+                    onKeyDown={(e) => e.key === "Enter" && addItem()}
+                  />
+                  {suggestions.length > 0 && (
+                    <div className="suggestion-list">
+                      {suggestions.map((s) => (
+                        <div key={s.name} className="suggestion-item" onClick={() => pickSuggestion(s)}>
+                          <span>{s.name}</span>
+                          <span className="suggestion-item-serving">{s.servingLabel}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-                {suggestions.length > 0 && (
-                  <div className="suggestion-list">
-                    {suggestions.map((s) => (
-                      <div key={s.name} className="suggestion-item" onClick={() => pickSuggestion(s)}>
-                        <span>{s.name}</span>
-                        <span className="suggestion-item-serving">{s.servingLabel}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <div className="add-item-field add-item-field-servings">
+                  <span className="add-item-field-label">Servings</span>
+                  <input
+                    className="field-input servings-input"
+                    list="servings-options"
+                    value={qtyInput}
+                    onChange={(e) => setQtyInput(e.target.value)}
+                  />
+                  <datalist id="servings-options">
+                    {SERVINGS_OPTIONS.map((v) => <option key={v} value={v} />)}
+                  </datalist>
+                </div>
+
+                <div className="add-item-field add-item-field-size">
+                  <span className="add-item-field-label">Size</span>
+                  <input
+                    className="field-input size-input"
+                    list="size-options"
+                    placeholder="e.g. 12 oz"
+                    value={sizeInput}
+                    onChange={(e) => setSizeInput(e.target.value)}
+                  />
+                  <datalist id="size-options">
+                    {sizeOptions.map((v) => <option key={v} value={v} />)}
+                  </datalist>
+                </div>
+
+                <button className="tracker-cta add-item-submit" onClick={addItem}>Add</button>
               </div>
 
               <div className="logged-items">
