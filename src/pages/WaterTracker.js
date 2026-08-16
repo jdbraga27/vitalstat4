@@ -36,7 +36,7 @@ export default function WaterTracker({ onBack }) {
     <div className="water-page">
       <div className="water-header">
         <button className="back-btn" onClick={onBack}>← Back</button>
-        <div className="water-title-row">💧 Water Tracker</div>
+        <div className="water-title-row">Water Tracker</div>
       </div>
 
       <div className="water-container">
@@ -60,7 +60,6 @@ export default function WaterTracker({ onBack }) {
           <div className="water-quick-adds">
             {QUICK_ADDS.map((q) => (
               <button key={q.label} className="water-quick-btn" onClick={() => addAmount(q.amount)}>
-                <span className="water-quick-icon">💧</span>
                 <span>{q.label}</span>
                 <span className="water-quick-amount">{q.amount}oz</span>
               </button>
@@ -84,7 +83,7 @@ export default function WaterTracker({ onBack }) {
             <div className="water-entries">
               {entries.map((e) => (
                 <div key={e.id} className="water-entry">
-                  <span>💧 {e.amount}oz</span>
+                  <span>{e.amount}oz</span>
                   <button className="remove-item-btn" onClick={() => removeEntry(e.id)}>✕</button>
                 </div>
               ))}
