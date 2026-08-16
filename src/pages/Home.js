@@ -23,20 +23,16 @@ export default function Home({ onSelectArea, onOpenTracker, onOpenWater }) {
       <main className="home-main">
         <div className="quick-track-grid">
           <button className="quick-track-card tracker-box" onClick={onOpenTracker} aria-label="Track your nutrients">
-            <span className="quick-track-icon">🥤</span>
             <span className="quick-track-title">Track your nutrients</span>
             <span className="quick-track-sub">Log what you ate or drank and see how it stacks up — caffeine, sodium, sugar, and more.</span>
             <span className="quick-track-arrow" style={{ color: "var(--coral-dark)" }}>→</span>
           </button>
           <button className="quick-track-card water-box" onClick={onOpenWater} aria-label="Track your water">
-            <span className="quick-track-icon">💧</span>
             <span className="quick-track-title">Track your water</span>
             <span className="quick-track-sub">Log glasses and bottles and see how you're doing against today's goal.</span>
             <span className="quick-track-arrow" style={{ color: "var(--water-blue-dark)" }}>→</span>
           </button>
         </div>
-
-        <div className="tracker-divider">or</div>
 
         <h2 className="section-label">Choose your health focus</h2>
         <div className="area-grid">
