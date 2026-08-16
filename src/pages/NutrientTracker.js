@@ -288,7 +288,7 @@ export default function NutrientTracker({ onBack }) {
     <div className="tracker-page">
       <div className="tracker-header">
         <button className="back-btn" onClick={onBack}>← Back</button>
-        <div className="tracker-title-row">🥤 Nutrient Tracker</div>
+        <div className="tracker-title-row"> Nutrient Tracker</div>
       </div>
 
       <div className="tracker-container">
@@ -304,7 +304,7 @@ export default function NutrientTracker({ onBack }) {
                   style={selectedKeys.includes(n.key) ? { "--nutrient-color": n.color, "--nutrient-bg": n.color + "1A" } : undefined}
                   onClick={() => toggleNutrient(n.key)}
                 >
-                  <span>{n.icon}</span>{n.label}
+                  {n.label}
                 </button>
               ))}
             </div>
@@ -314,7 +314,7 @@ export default function NutrientTracker({ onBack }) {
               <button className={`period-btn ${period === "week" ? "active" : ""}`} onClick={() => setPeriod("week")}>This week</button>
             </div>
 
-            {error && <div className="form-error" style={{ marginTop: 16 }}><span>⚠</span> {error}</div>}
+            {error && <div className="form-error" style={{ marginTop: 16 }}> {error}</div>}
 
             <button className="tracker-cta" onClick={startTracking}>Start tracking →</button>
           </div>
@@ -458,7 +458,7 @@ export default function NutrientTracker({ onBack }) {
                 return (
                   <div key={key} className="result-row">
                     <div className="result-row-head">
-                      <span className="result-row-label" style={{ color: n.color }}>{n.icon} {n.label}</span>
+                      <span className="result-row-label" style={{ color: n.color }}> {n.label}</span>
                       <span className="result-row-value">{value.toFixed(1)}{n.unit}</span>
                     </div>
                     <div className="result-bar-track">
